@@ -1,1 +1,9 @@
-﻿  Skeleton.vcxproj -> C:\Users\fuji\source\GrafikaHaziCsomag\Programs\Skeleton\bin\Skeleton.exe
+﻿  Skeleton.cpp
+C:\Users\fuji\source\repos\grafika1\source\GrafikaHaziCsomag\Programs\Skeleton\Skeleton\framework.h(167,17): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\fuji\source\repos\grafika1\source\GrafikaHaziCsomag\Programs\Skeleton\Skeleton\Skeleton.cpp(73,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  Generating code
+  1 of 131 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Skeleton.vcxproj -> C:\Users\fuji\source\repos\grafika1\source\GrafikaHaziCsomag\Programs\Skeleton\bin\Skeleton.exe
