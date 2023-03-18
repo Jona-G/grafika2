@@ -37,11 +37,11 @@ const char * const vertexSource = R"(
 	#version 330
 	precision highp float;
 
-	uniform float radius;
+	uniform float radius, dx, dy;
 	layout(location = 0) in vec2 vp;
 
 	void main() {
-		gl_Position = vec4(vp.x * radius, vp.y * radius, 0, 1);
+		gl_Position = vec4(vp.x * radius + dx, vp.y * radius + dy, 0, 1);
 	}
 )";
 
@@ -79,26 +79,50 @@ void onInitialization() {
 	gpuProgram.create(vertexSource, fragmentSource, "outColor");
 }
 
+float dx = 0.0f, dy = 0.0f, angle = 0.0f;
+
 void onDisplay() {
 	glClearColor(0.8f, 0.8f, 0.8f, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	gpuProgram.setUniform(1.0f, "radius");
 	gpuProgram.setUniform(vec3(0.0f, 0.0f, 0.0f), "color");
+	gpuProgram.setUniform(dx-dx, "dx");
+	gpuProgram.setUniform(dy-dy, "dy");
 	glDrawArrays(GL_TRIANGLE_FAN, 0, nVertices);
 
 	gpuProgram.setUniform(0.15f, "radius");
 	gpuProgram.setUniform(vec3(0.9f, 0.0f, 0.0f), "color");
+	gpuProgram.setUniform(dx, "dx");
+	gpuProgram.setUniform(dy, "dy");
+	glDrawArrays(GL_TRIANGLE_FAN, 0, nVertices);
+
+	gpuProgram.setUniform(0.03f, "radius");
+	gpuProgram.setUniform(vec3(1.0f, 1.0f, 1.0f), "color");
+	gpuProgram.setUniform(dx + sinf(angle)/8, "dx");
+	gpuProgram.setUniform(dy - cosf(angle)/8, "dy");
 	glDrawArrays(GL_TRIANGLE_FAN, 0, nVertices);
 
 	glutSwapBuffers();
 }
 
+std::vector<unsigned char> keys(5);
+
 void onKeyboard(unsigned char key, int pX, int pY) {
-	glutPostRedisplay();
+	boolean add = true;
+	for (int i = 0; i < keys.size(); i++)
+		if (keys[i] == key)
+			add = false;
+	if (add) keys.push_back(key);
+	add = true;
 }
 
 void onKeyboardUp(unsigned char key, int pX, int pY) {
+	std::vector<unsigned char> newKeys(5);
+	for (int i = 0; i < keys.size(); i++)
+		if (keys[i] != key)
+			newKeys[i] = keys[i];
+	keys = newKeys;
 }
 
 void onMouseMotion(int pX, int pY) {
@@ -109,4 +133,16 @@ void onMouse(int button, int state, int pX, int pY) {
 
 void onIdle() {
 	long time = glutGet(GLUT_ELAPSED_TIME);
+
+	for (int i = 0; i < keys.size(); i++)
+		switch (keys[i]) {
+		case 'e':
+			dy += 0.0005f;
+			break;
+		case 's': angle += 0.002f;
+			break;
+		case 'f': angle -= 0.002f;
+			break;
+		}
+	glutPostRedisplay();
 }
