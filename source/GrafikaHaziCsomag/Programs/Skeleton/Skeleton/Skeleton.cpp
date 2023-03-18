@@ -79,24 +79,43 @@ void onInitialization() {
 	gpuProgram.create(vertexSource, fragmentSource, "outColor");
 }
 
+//Piros haminak
 float dx = 0.0f, dy = 0.0f, angle = 0.0f;
+
+//Zöld haminak
+float zx = 0.0f, zy = 0.0f, zangle = 0.0f;
 
 void onDisplay() {
 	glClearColor(0.8f, 0.8f, 0.8f, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	//Sík kirajzolása
 	gpuProgram.setUniform(1.0f, "radius");
 	gpuProgram.setUniform(vec3(0.0f, 0.0f, 0.0f), "color");
-	gpuProgram.setUniform(dx-dx, "dx");
-	gpuProgram.setUniform(dy-dy, "dy");
+	gpuProgram.setUniform(dx - dx, "dx");
+	gpuProgram.setUniform(dy - dy, "dy");
 	glDrawArrays(GL_TRIANGLE_FAN, 0, nVertices);
 
+	//Zöld hami mozgásának kiszámítása
+	zy += -cosf(zangle) / 2000;
+	zx += sinf(zangle) / 2000;
+	zangle += 0.003f;
+
+	//Zöld hami kirajzolása
+	gpuProgram.setUniform(0.15f, "radius");
+	gpuProgram.setUniform(vec3(0.0f, 0.9f, 0.0f), "color");
+	gpuProgram.setUniform(zx + 0.4f, "dx");
+	gpuProgram.setUniform(zy, "dy");
+	glDrawArrays(GL_TRIANGLE_FAN, 0, nVertices);
+
+	//Piros hami kirajzolása
 	gpuProgram.setUniform(0.15f, "radius");
 	gpuProgram.setUniform(vec3(0.9f, 0.0f, 0.0f), "color");
 	gpuProgram.setUniform(dx, "dx");
 	gpuProgram.setUniform(dy, "dy");
 	glDrawArrays(GL_TRIANGLE_FAN, 0, nVertices);
 
+	//Piros hami szemének kirajzolása 
 	gpuProgram.setUniform(0.03f, "radius");
 	gpuProgram.setUniform(vec3(1.0f, 1.0f, 1.0f), "color");
 	gpuProgram.setUniform(dx + sinf(angle)/8, "dx");
@@ -106,17 +125,16 @@ void onDisplay() {
 	glutSwapBuffers();
 }
 
+//Számontartott billentyûk
 std::vector<unsigned char> keys(5);
 
+//Billentyû hozzáadása a vektorhoz (egy gombot csak egyszer!)
 void onKeyboard(unsigned char key, int pX, int pY) {
-	boolean add = true;
-	for (int i = 0; i < keys.size(); i++)
-		if (keys[i] == key)
-			add = false;
-	if (add) keys.push_back(key);
-	add = true;
+	if (std::find(keys.begin(), keys.end(), key) == keys.end())
+		keys.push_back(key);
 }
 
+//Elengedett billentyû kidobása a vektorból
 void onKeyboardUp(unsigned char key, int pX, int pY) {
 	std::vector<unsigned char> newKeys(5);
 	for (int i = 0; i < keys.size(); i++)
@@ -131,17 +149,17 @@ void onMouseMotion(int pX, int pY) {
 void onMouse(int button, int state, int pX, int pY) {
 }
 
+//Lenyomott gomb(ok)hoz kapcsolódó mozgás kiszámítása
 void onIdle() {
-	long time = glutGet(GLUT_ELAPSED_TIME);
-
 	for (int i = 0; i < keys.size(); i++)
 		switch (keys[i]) {
 		case 'e':
-			dy += 0.0005f;
+			dy += -cosf(angle)/2000;
+			dx += sinf(angle)/2000;
 			break;
-		case 's': angle += 0.002f;
+		case 's': angle += 0.003f;
 			break;
-		case 'f': angle -= 0.002f;
+		case 'f': angle -= 0.003f;
 			break;
 		}
 	glutPostRedisplay();
