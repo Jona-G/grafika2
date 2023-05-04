@@ -139,8 +139,102 @@ struct Cone : public Intersectable {
 
 struct Cube {
 	Material* material;
+	std::vector<vec3> vtx;
+	vec3 center = vec3(0.0f, 0.0f, 0.0f);
+	float length = 0.2f, dist = sqrt(3) * length / 2;
 
-	Cube(Material* _material) { material = _material; }
+public:
+	Cube(Material* _material) :material(_material) { build(); }
+
+	Cube(vec3 _center, float _length, Material* _material)
+		:center(_center), length(_length), material(_material) { build(); }
+
+	void build() {
+		vtx.clear();
+
+		vtx.push_back(vec3(center.x - dist, center.y - dist, center.z - dist));
+		vtx.push_back(vec3(center.x + dist, center.y - dist, center.z - dist));
+		vtx.push_back(vec3(center.x - dist, center.y - dist, center.z + dist));
+		vtx.push_back(vec3(center.x + dist, center.y - dist, center.z + dist));
+		vtx.push_back(vec3(center.x - dist, center.y + dist, center.z - dist));
+		vtx.push_back(vec3(center.x + dist, center.y + dist, center.z - dist));
+		vtx.push_back(vec3(center.x - dist, center.y + dist, center.z + dist));
+		vtx.push_back(vec3(center.x + dist, center.y + dist, center.z + dist));
+	}
+
+	std::vector<Intersectable*> create(std::vector<Intersectable*> objects) {
+		objects.push_back(new Triangle(vtx[0], vtx[1], vtx[2], material));
+		objects.push_back(new Triangle(vtx[0], vtx[1], vtx[5], material));
+		objects.push_back(new Triangle(vtx[0], vtx[2], vtx[6], material));
+		objects.push_back(new Triangle(vtx[0], vtx[4], vtx[5], material));
+		objects.push_back(new Triangle(vtx[0], vtx[4], vtx[6], material));
+		objects.push_back(new Triangle(vtx[1], vtx[2], vtx[3], material));
+		objects.push_back(new Triangle(vtx[1], vtx[3], vtx[7], material));
+		objects.push_back(new Triangle(vtx[1], vtx[5], vtx[7], material));
+		objects.push_back(new Triangle(vtx[2], vtx[3], vtx[6], material));
+		objects.push_back(new Triangle(vtx[3], vtx[6], vtx[7], material));
+		objects.push_back(new Triangle(vtx[4], vtx[5], vtx[6], material));
+		objects.push_back(new Triangle(vtx[5], vtx[6], vtx[7], material));
+		return objects;
+	}
+
+	void moveTo(vec3 _center) {
+		vec3 oldCenter = center;
+		center = _center;
+		vec3 newCenter = oldCenter - center;
+
+		for (auto& v : vtx) {
+			vec3 oldv = v;
+			v = vec3(oldv.x - newCenter.x, oldv.y - newCenter.y, oldv.z - newCenter.z);
+		}
+	}
+
+	void resize(float newLength) {
+		float olddist = sqrt(3) * length / 2;
+
+		length = newLength;
+		dist = sqrt(3) * length / 2;
+
+		float newdist = dist - olddist;
+
+		printf("olddist: %f\nlength: %f\ndist: %f\nnewdist: %f\n", olddist, length, dist, newdist);
+
+		for (auto& v : vtx) {
+			vec3 oldv = v;
+			v = vec3(oldv.x + newdist, oldv.y + newdist, oldv.z + newdist);
+		}
+	}
+
+	void print() {
+		for (int i = 0; i < 8; i++)
+			printf("%f %f %f\n", vtx[i].x, vtx[i].y, vtx[i].z);
+		printf("\n");
+	}
+
+	void rotateX(float angle) {
+		angle = angle * (M_PI / 180.0f);
+		vec3 currentCenter = center;
+		moveTo(vec3(0.0f, 0.0f, 0.0f));
+		for (auto& v : vtx) {
+			vec3 oldv = v;
+			v = vec3(oldv.x + currentCenter.x,
+					 oldv.y * cosf(angle) - oldv.z * sinf(angle) + currentCenter.y,
+					 oldv.z * cosf(angle) + oldv.y * sinf(angle) + currentCenter.z);
+		}
+	}
+
+	void rotateY(float angle) {
+		angle = angle * (M_PI / 180.0f);
+		vec3 currentCenter = center;
+		moveTo(vec3(0.0f, 0.0f, 0.0f));
+		for (auto& v : vtx) {
+			vec3 oldv = v;
+			v = vec3(oldv.x * cosf(angle) - oldv.z * sinf(angle),
+					 oldv.y,
+					 oldv.z * cosf(angle) + oldv.x * sinf(angle));
+		}
+		moveTo(currentCenter);
+	}
 };
 
 class Camera {
@@ -184,63 +278,18 @@ public:
 		vec3 lightDirection(1, 1, 1), Le(2, 2, 2);
 		lights.push_back(new Light(lightDirection, Le));
 
-		vec3 kd(0.3f, 0.2f, 0.1f), ks(2, 2, 2);
-		Material* material = new Material(kd, ks, 50);
-		vec3 t1, t2, t3;
+		//vec3 kd(0.5f, 0.5f, 0.5f), ks(2, 2, 2);
+		//Material* material = new Material(kd, ks, 50);
+		//vec3 t1, t2, t3;
 
-		/*t1 = vec3(-0.5f, -0.5f, 0.5f);
-		t2 = vec3(-0.5f, -0.5f, -0.5f);
-		t3 = vec3(0.5f, -0.5f, 0.5f);
-		objects.push_back(new Triangle(t1, t2, t3, material));
-		
-		t1 = vec3(0.5f, -0.5f, -0.5f);
-		t2 = vec3(-0.5f, -0.5f, -0.5f);
-		t3 = vec3(0.5f, -0.5f, 0.5f);
-		objects.push_back(new Triangle(t1, t2, t3, material));
-		
-		t1 = vec3(0.5f, -0.5f, -0.5f);
-		t2 = vec3(-0.5f, -0.5f, -0.5f);
-		t3 = vec3(0.5f, 0.5f, -0.5f);
-		objects.push_back(new Triangle(t1, t2, t3, material));
-		
-		t1 = vec3(-0.5f, -0.5f, -0.5f);
-		t2 = vec3(-0.5f, 0.5f, -0.5f);
-		t3 = vec3(0.5f, 0.5f, -0.5f);
-		objects.push_back(new Triangle(t1, t2, t3, material));
-		
-		t1 = vec3(0.5f, -0.5f, -0.5f);
-		t2 = vec3(0.5f, 0.5f, 0.5f);
-		t3 = vec3(0.5f, -0.5f, 0.5f);
-		objects.push_back(new Triangle(t1, t2, t3, material));
-		
-		t1 = vec3(0.5f, 0.5f, -0.5f);
-		t2 = vec3(0.5f, 0.5f, 0.5f);
-		t3 = vec3(0.5f, -0.5f, -0.5f);
-		objects.push_back(new Triangle(t1, t2, t3, material));
-		
-		t1 = vec3(-0.5f, -0.5f, -0.5f);
-		t2 = vec3(-0.5f, -0.5f, 0.5f);
-		t3 = vec3(-0.5f, 0.5f, 0.5f);
-		objects.push_back(new Triangle(t1, t2, t3, material));
-		
-		t1 = vec3(-0.5f, 0.5f, -0.5f);
-		t2 = vec3(-0.5f, -0.5f, -0.5f);
-		t3 = vec3(-0.5f, 0.5f, 0.5f);
-		objects.push_back(new Triangle(t1, t2, t3, material));
-		
-		t1 = vec3(-0.5f, 0.5f, -0.5f);
-		t2 = vec3(0.5f, 0.5f, -0.5f);
-		t3 = vec3(-0.5f, 0.5f, 0.5f);
-		objects.push_back(new Triangle(t1, t2, t3, material));
-		
-		t1 = vec3(0.5f, 0.5f, 0.5f);
-		t2 = vec3(0.5f, 0.5f, -0.5f);
-		t3 = vec3(-0.5f, 0.5f, 0.5f);
-		objects.push_back(new Triangle(t1, t2, t3, material));*/
-
-		vec3 p = vec3(0.2f, -0.5f, 0.9f);
-		objects.push_back(new Cone(p, 0.5f, M_PI_2, material)); //FIX!!
-		
+		for (int i = 0; i < 60; i++) {
+			vec3 kd(rnd() / 4 + 0.2f, rnd() / 4 + 0.2f, rnd() / 4 + 0.2f), ks(2, 2, 2);
+			Material* material = new Material(kd, ks, 1);
+			Cube cube = Cube(vec3(rnd() - 1.0f, 2 * rnd() - 1.0f, 2 * rnd() - 2.0f), 0.075f, material);
+			cube.rotateX(rnd() * 60.0f);
+			cube.rotateY(rnd() * 60.0f);
+			objects = cube.create(objects);
+		}
 	}
 
 	void render(std::vector<vec4>& image) {
@@ -362,8 +411,8 @@ FullScreenTexturedQuad* fullScreenTexturedQuad;
 
 // Initialization, create an OpenGL context
 void onInitialization() {
-	//srand(glutGet(GLUT_ELAPSED_TIME));
 	glViewport(0, 0, windowWidth, windowHeight);
+	srand(glutGet(GLUT_ELAPSED_TIME));
 	scene.build();
 
 	std::vector<vec4> image(windowWidth * windowHeight);
