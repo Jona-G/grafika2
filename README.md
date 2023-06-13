@@ -14,3 +14,4 @@ Készítsen CPU sugárkövetés felhasználásával lehallgatástervező program
 
 5. A lehallgatók interaktívan áthelyezhetők. A bal egérgomb lenyomására, a kurzor alatt látható 3D ponthoz megkeressük a legközelebbi lehallgatót, annak pozícióját a megtalált pontra állítjuk, az irányát pedig a felület normálvektorára.
 
+![image](https://github.com/Jona-G/grafika2/assets/63510732/4f7d357e-e23b-4bd0-9341-632e49b38092)
